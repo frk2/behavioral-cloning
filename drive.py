@@ -26,6 +26,9 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+img_size = (160,48)
+CROP_TOP=60
+CROP_BOTTOM=140
 @sio.on('telemetry')
 def telemetry(sid, data):
     # The current steering angle of the car
@@ -33,23 +36,26 @@ def telemetry(sid, data):
     # The current throttle of the car
     throttle = data["throttle"]
     # The current speed of the car
-    speed = data["speed"]
+    speed = float(data["speed"])
     # The current image from the center camera of the car
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
-    image_array = cv2.resize(image_array, (80, 160))
+    image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+
+    #cv2.imshow('a',image_array)
+    #cv2.waitKey(0)
+    image_array = image_array[CROP_TOP:CROP_BOTTOM,:,:]
+    image_array = cv2.resize(image_array, img_size, interpolation=cv2.INTER_AREA)
     image_array = image_array/255.
     transformed_image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
-    print("INserting image into model")
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
-    print("Got answer")
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.2
+    
+    throttle = max(-1,1 - (speed / 15.0))
     print(steering_angle, throttle)
     send_control(steering_angle, throttle)
-
 
 @sio.on('connect')
 def connect(sid, environ):
