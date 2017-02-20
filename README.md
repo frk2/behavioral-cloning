@@ -108,7 +108,12 @@ My generator randomly picks out a value from the dataset and proceeds to use it 
       row = drive_log.iloc[np.random.randint(len(drive_log))]
 ```
 ####Validation/Testing
-We do use 10% of the data for generating a validation set, but we still use the entire dataset to train the network. Validation/Loss seem to have unknown meaning in this project. Basically having a low validation loss doesn't mean that the car will drive perfectly - since everything depended on the input/training set. Also my validation loss was always lower than the training loss after a few epochs - which makes sense since the loss will grow as the number of items you are being tested against grows due to the fact that the output is continuous. So I dont quite understand how to use a validation/test set here.
+We do use 10% of the data for generating a validation set, but we still use the entire dataset to train the network. Although it seems the absolute number of the loss/val loss may not be that important - I used the validation loss to early stop training and ModelCheckpoint (as suggested by my Udacity reviewer - ty!) to save the best epoch in the run. This makes me early stop the training after like 20 epochs.
+
+```
+checkpoint = ModelCheckpoint('model.h5', monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='min', period=1)
+earlystop = EarlyStopping(monitor='val_loss', min_delta=0.001, patience=3, verbose=1, mode='min')
+```
 
 ##The approach
 I used the udacity data as a 'trusted data source' to debug my code and get my model working. I started by using just a single camera with no augmentation other than flipping. I was able to make the car go around with just that data, given it was balanced properly. I then added on multiple cameras, cropping, more epochs and finally started training on my own track 1 driving data. Eventually I got it to generalize to track 2 by training on 2 laps (one forward, one reverse). 
