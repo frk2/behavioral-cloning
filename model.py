@@ -21,7 +21,8 @@ from sklearn.model_selection import train_test_split
 from keras.applications.vgg16 import VGG16
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
-
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
 
 img_size = (160,48)
 CROP_TOP=60
@@ -175,11 +176,15 @@ if __name__ == '__main__':
   model.summary()
   model.compile(loss = 'mse', optimizer=Adam(lr=0.0001))
   #we just generate a small test test but use the entire dataset for training since it doesn't seem to matter much!
-  split_train_log , test_log = train_test_split(drive_log, test_size = 0.1)
+  drive_log , test_log = train_test_split(drive_log, test_size = 0.1)
   print("length is {}".format(len(drive_log)))
-  model.fit_generator(Xgen(drive_log, batch_size, img_size,1), nb_epoch=epochs, samples_per_epoch=10000, verbose=2, validation_data=Xgen(test_log, batch_size, img_size, 1), nb_val_samples=100)
+  checkpoint = ModelCheckpoint('model.h5', monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='min', period=1)
+  earlystop = EarlyStopping(monitor='val_loss', min_delta=0.001, patience=3, verbose=1, mode='min')
+
+  model.fit_generator(Xgen(drive_log, batch_size, img_size,1), nb_epoch=epochs, samples_per_epoch=10000, 
+    verbose=2, validation_data=Xgen(test_log, batch_size, img_size, 1), nb_val_samples=1000, callbacks=[checkpoint, earlystop])
   print('Zero angles: {}'.format(zero_angles))
-  model.save('model.h5')
+  model.save('last_model.h5')
 
   #Visualize the total input dataset to the model. This helps make sure the generator isn't bonkers
   pandas.DataFrame(steering_angles).hist(bins=100)
