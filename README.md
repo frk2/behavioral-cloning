@@ -3,6 +3,13 @@
 
 In this project we were able to use the provided simulator and train our neural net to predit a steering angle based on the input data. Its kind of unbelievable to me that it actually worked out this way and how easy it was to make it learn something that would otherwise be unthinkable :) 
 
+## Bottomline Performance
+
+- Track 1: Car goes around perfectly and infinitely. Car is even able to recover minor nudges while driving :)
+- Track 2: Car goes around mostly perfectly till it reaches one particular cliff towards the end and decides to jump off :( 
+
+Im sure I can fix this with some more training but I feel I've learnt what I wanted to and feel confident to move on to the next project.
+
 ##Input preprocessing
 This was by far the most important part of the project. The data was heavily biased towards 0 and the model would like to drive the car straight off cliffs. Small problem. Visually inspecting the data reveals the following:
 ![Original dataset, heavily zero biased](./original_dataset.png)
