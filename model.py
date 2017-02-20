@@ -36,8 +36,7 @@ OFF_CENTER_IMG = 0.3
 clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 def preprocessImage(image, imgsize):
-    
-    #X = 0.299 * X[:, :, 0] + 0.587 * X[:, :, 1] + 0.114 * X[:, :, 2] #Y conversion
+    #crop the image to remove training the model on parameters that do not matter (above horizon)
     image = image[CROP_TOP:CROP_BOTTOM,:,:]
     image = cv2.resize(image, imgsize, interpolation=cv2.INTER_AREA)
     image = (image / 255.).astype(np.float32)
@@ -133,10 +132,11 @@ def Xgen(drive_log, batch_size, imgsize, bias):
     while num_samples < batch_size:
       row = drive_log.iloc[np.random.randint(len(drive_log))]
       steering_angle = row.steering
+
+      #Reject 95% of zero steering angles 
       if (steering_angle == 0. and np.random.uniform() > 0.05):
         continue
 
-      
       img_path = ""
       img_choice = np.random.randint(3)
       if img_choice == 0:
@@ -149,10 +149,12 @@ def Xgen(drive_log, batch_size, imgsize, bias):
           steering_angle -= OFF_CENTER_IMG
 
 
+      #clamp makes sure the angle stays between -1.0 /1.0 - with a high enough OFF_CENTER_IMG this causes some
+      #extreme angle bias but it doesn't seem to throw off the model.
+
       steering_angle = clamp(steering_angle, -1.0, 1.0)
 
       image = cv2.imread(img_path.strip())
-      #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
       image = preprocessImage(image, imgsize)
       if (np.random.randint(2) == 0):
         image = cv2.flip(image,1)
@@ -167,20 +169,19 @@ def Xgen(drive_log, batch_size, imgsize, bias):
     yield (images, steering_data)
 
 if __name__ == '__main__':
-  log = load_log()
+  drive_log = load_log()
   inp_shape = img_size[::-1] + (3,)
   model = nvidiaModel(inp_shape)
   model.summary()
   model.compile(loss = 'mse', optimizer=Adam(lr=0.0001))
-  split_train_log , test_log = train_test_split(log, test_size = 0.1)
-  for i in tqdm(range(1)):
-    drive_log = log
-    print("length is {}".format(len(drive_log)))
-    model.fit_generator(Xgen(drive_log, batch_size, img_size,1), nb_epoch=epochs, samples_per_epoch=10000, verbose=2, validation_data=Xgen(test_log, batch_size, img_size, 1), nb_val_samples=100)
-    print('Zero angles: {}'.format(zero_angles))
-    zero_angles = 0
-    
+  #we just generate a small test test but use the entire dataset for training since it doesn't seem to matter much!
+  split_train_log , test_log = train_test_split(drive_log, test_size = 0.1)
+  print("length is {}".format(len(drive_log)))
+  model.fit_generator(Xgen(drive_log, batch_size, img_size,1), nb_epoch=epochs, samples_per_epoch=10000, verbose=2, validation_data=Xgen(test_log, batch_size, img_size, 1), nb_val_samples=100)
+  print('Zero angles: {}'.format(zero_angles))
   model.save('model.h5')
+
+  #Visualize the total input dataset to the model. This helps make sure the generator isn't bonkers
   pandas.DataFrame(steering_angles).hist(bins=100)
   pylab.show()
   steering_angles = []
