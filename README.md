@@ -8,6 +8,8 @@ In this project we were able to use the provided simulator and train our neural 
 - Track 1: Car goes around perfectly and infinitely. Car is even able to recover minor nudges while driving :)
 - Track 2: Car goes around mostly perfectly till it reaches one particular cliff towards the end and decides to jump off :( 
 
+Model has been generalized with training inputs from both tracks - track 2 performance was achieved without any steering hacks 
+
 Im sure I can fix this with some more training but I feel I've learnt what I wanted to and feel confident to move on to the next project.
 
 ##Input preprocessing
