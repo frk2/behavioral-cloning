@@ -93,7 +93,11 @@ Trainable params: 1,000,653
 Non-trainable params: 0
 ____________________________________________________________________________________________________
 ```
-
+####Data Generation
+My generator randomly picks out a value from the dataset and proceeds to use it unless its a zero steering value in which case it uses it 5% of the time.
+```
+      row = drive_log.iloc[np.random.randint(len(drive_log))]
+```
 ####Validation/Testing
 We do use 10% of the data for generating a validation set, but we still use the entire dataset to train the network. Validation/Loss seem to have unknown meaning in this project. Basically having a low validation loss doesn't mean that the car will drive perfectly - since everything depended on the input/training set. Also my validation loss was always lower than the training loss after a few epochs - which makes sense since the loss will grow as the number of items you are being tested against grows due to the fact that the output is continuous. So I dont quite understand how to use a validation/test set here.
 
