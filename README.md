@@ -17,6 +17,7 @@ This was by far the most important part of the project. The data was heavily bia
 ![Original dataset, heavily zero biased](./original_dataset.png)
 
 ###Removing 0 bias
+
 My data generator probabilistically rejects 0 valued steering values. It only accepts 5% of them, owing to the fact that they exceed normal data by about a factor of 20. This seems to work well.
 ```
 if (steering_angle == 0. and np.random.uniform() > 0.05):
