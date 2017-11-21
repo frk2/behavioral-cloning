@@ -16,14 +16,14 @@ Im sure I can fix this with some more training but I feel I've learnt what I wan
 This was by far the most important part of the project. The data was heavily biased towards 0 and the model would like to drive the car straight off cliffs. Small problem. Visually inspecting the data reveals the following:
 ![Original dataset, heavily zero biased](./original_dataset.png)
 
-####Removing 0 bias
+###Removing 0 bias
 My data generator probabilistically rejects 0 valued steering values. It only accepts 5% of them, owing to the fact that they exceed normal data by about a factor of 20. This seems to work well.
 ```
 if (steering_angle == 0. and np.random.uniform() > 0.05):
         continue
 ```
 
-####Data Augmentation
+###Data Augmentation
 To generate more data and generalize the model better - we use flipping and input from the left and right camera. The left and right camera help by generating a large 'view' of the track so the car will be able to recover if it goes slightly offcourse from the training set. Without the left and right cameras - recovery seems to not occur reliably. 
 ```
       img_choice = np.random.randint(3)
